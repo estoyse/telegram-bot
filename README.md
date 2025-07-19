@@ -7,7 +7,7 @@ This is a Telegram bot that can be used to automatically reply to messages in a 
 1.  **Clone the repository:**
 
     ```bash
-    git clone <repository-url>
+    git clone https://github.com/estoyse/telegram-bot/
     cd telegram-bot
     ```
 
