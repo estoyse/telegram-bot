@@ -1,4 +1,6 @@
 export const messageHandler = async (client, event, channelEntity) => {
+  console.log(event);
+
   const ignoredIds = [2089818172, 2520298281];
   if (!event.isGroup) {
     return;
@@ -20,7 +22,7 @@ export const messageHandler = async (client, event, channelEntity) => {
         senderEntity.firstName ||
         senderEntity.username ||
         senderEntity.title ||
-        "Unnamed";
+        "Mentor";
     } catch (e) {
       console.error("Failed to get sender entity:", e);
     }
@@ -35,14 +37,10 @@ export const messageHandler = async (client, event, channelEntity) => {
   const meta = `#${peerType} https://t.me/c/${chatId}/${message.id}`;
   const repliedMessage = await event.message.getReplyMessage();
 
-  // Helper function to check if media is valid and sendable
   const getValidMedia = (media) => {
     if (!media) return null;
 
-    // Check media type and validity
     switch (media.className) {
-      case "MessageMediaEmpty":
-        return null;
       case "MessageMediaPhoto":
         return media.photo ? media : null;
       case "MessageMediaDocument":
@@ -52,16 +50,31 @@ export const messageHandler = async (client, event, channelEntity) => {
       case "MessageMediaVenue":
         return media;
       default:
-        console.log(`Unsupported media type: ${media.className}`);
         return null;
     }
   };
 
   try {
     const validMedia = getValidMedia(message.media);
-
-    // Base message options
     const baseMessageText = `💬${sender} in ${chat}:\n\n${message.text}\n\n${meta}`;
+    let isImportant = true;
+    const isWeirdChat = /(27|24|14)/i.test(chat);
+    const isFromTopic = message.replyTo?.forumTopic;
+
+    if ((isWeirdChat && isFromTopic) || (!isWeirdChat && !isFromTopic)) {
+      isImportant = false;
+    } else if (!isWeirdChat && isFromTopic) {
+      const topicRegex = /(savol|javob|typing|question)/i;
+      const [topicMessage] = await client.getMessages(chatEntity, {
+        ids: [message.replyTo.replyToTopId || message.replyTo.replyToMsgId],
+      });
+      isImportant = topicRegex.test(topicMessage.action.title);
+    }
+
+    if (!isImportant) {
+      console.log("Not important. Skipping...");
+      return;
+    }
 
     if (
       !repliedMessage ||
