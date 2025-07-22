@@ -1,6 +1,4 @@
 export const messageHandler = async (client, event, channelEntity) => {
-  console.log(event);
-
   const ignoredIds = [2089818172, 2520298281];
   if (!event.isGroup) {
     return;
